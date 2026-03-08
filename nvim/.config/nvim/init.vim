@@ -8,7 +8,28 @@ Plug 'tpope/vim-commentary'         " commenting
 Plug 'tpope/vim-repeat'             " makes . work with plugins
 Plug 'wellle/targets.vim'           " extra text objects
 Plug 'justinmk/vim-sneak'          " 2-char jump motion
-Plug 'vim-scripts/ReplaceWithRegister' " replace with register
+" Plug 'vim-scripts/ReplaceWithRegister' " replace with register
+
+" ======================================================================
+" These are apparently good for python IDE setup
+" Never used them
+" =================================================================
+Plug 'neovim/nvim-lspconfig'
+Plug 'nvim-treesitter/nvim-treesitter'
+Plug 'nvim-telescope/telescope.nvim'
+Plug 'nvim-lua/plenary.nvim'
+Plug 'nvim-lualine/lualine.nvim'
+Plug 'hrsh7th/nvim-cmp'
+Plug 'hrsh7th/cmp-nvim-lsp'
+Plug 'hrsh7th/cmp-buffer'
+Plug 'hrsh7th/cmp-path'
+Plug 'L3MON4D3/LuaSnip'
+Plug 'tpope/vim-fugitive'
+Plug 'lewis6991/gitsigns.nvim'
+Plug 'mfussenegger/nvim-dap'
+Plug 'mfussenegger/nvim-dap-python'
+
+
 
 call plug#end()
 
