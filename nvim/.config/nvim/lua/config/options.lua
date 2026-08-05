@@ -1,54 +1,79 @@
--- ============================================================
---  lua/config/options.lua — Editor settings
---
---  In Vimscript you wrote:  set number
---  In Lua you write:        vim.opt.number = true
---
---  `vim` is a global table that Neovim injects into every Lua
---  file. It gives you access to everything Neovim exposes:
---    vim.opt   → editor options  (replaces `set`)
---    vim.g     → global variables (replaces `let g:`)
---    vim.api   → Neovim API functions
---    vim.cmd   → runs a raw Vimscript command
---    vim.fn    → calls Vimscript functions
---
---  vim.opt returns an "option object". You set it with = and
---  you can also use :append(), :remove(), :prepend() on list
---  options. For most simple options, just use = true / false
---  or = some_value.
--- ============================================================
+-- =============================================================================
+-- lua/config/options.lua — All vim.opt settings
+-- =============================================================================
+-- Diagnostics are configured in lsp.lua (their natural home).
+-- =============================================================================
 
-local opt = vim.opt  -- local alias so we can write `opt.x` instead of `vim.opt.x`
-                     -- `local` means the variable only exists in this file
+local opt = vim.opt
 
--- ── Line numbers ─────────────────────────────────────────────
-opt.number         = true   -- show the absolute line number on the current line
-opt.relativenumber = true   -- show relative numbers on every other line
-                             -- together these give you the "hybrid" number mode
-                             -- you had with `set number relativenumber`
+-- ── Line Numbers ──
+opt.number = true
+opt.relativenumber = true
 
--- ── Search behaviour ─────────────────────────────────────────
-opt.ignorecase = true   -- searches are case-insensitive by default
-opt.smartcase  = true   -- BUT if you type any capital letter, become case-sensitive
-                         -- so /hello matches Hello, but /Hello only matches Hello
-opt.incsearch  = true   -- highlight matches as you type the search pattern
-                         -- (this is on by default in Neovim but explicit is fine)
+-- ── Tabs and Indentation ──
+opt.tabstop = 4
+opt.softtabstop = 4
+opt.shiftwidth = 4
+opt.expandtab = true
+opt.autoindent = true
+opt.smartindent = true
 
--- ── Clipboard ────────────────────────────────────────────────
-opt.clipboard = "unnamedplus"  -- yank/paste uses the system clipboard automatically
-                                -- "unnamedplus" is the + register, which is the
-                                -- X11/Wayland primary clipboard on Linux, and the
-                                -- normal clipboard on macOS/Windows
+-- ── Search ──
+-- CHANGE: hlsearch set to true (was false).
+-- With hlsearch=false the <Esc> → nohlsearch mapping did nothing.
+-- Now: matches highlight while searching, <Esc> clears them.
+opt.hlsearch = true
+opt.incsearch = true
+opt.ignorecase = true
+opt.smartcase = true
 
--- ── Scrolling ────────────────────────────────────────────────
-opt.scrolloff = 8   -- always keep at least 8 lines visible above and below the
-                     -- cursor. When you get near the bottom, the buffer scrolls
-                     -- so the cursor never sits right at the edge.
+-- ── Display ──
+opt.termguicolors = true
+opt.scrolloff = 8
+opt.signcolumn = "yes"
+opt.colorcolumn = "88"
+opt.wrap = false
+opt.cursorline = true
+opt.breakindent = true
+opt.list = true
+opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+opt.inccommand = "split"         -- Live preview of :s substitutions
 
--- ── Indentation ──────────────────────────────────────────────
-opt.expandtab   = true  -- pressing Tab inserts spaces, not a real tab character
-opt.tabstop     = 2     -- a real tab character (if one exists) displays as 2 spaces
-opt.shiftwidth  = 2     -- >> and << indent/dedent by 2 spaces
-opt.softtabstop = 2     -- Tab key in insert mode moves 2 spaces (matches shiftwidth)
-                         -- having all three set to the same value keeps behaviour
-                         -- consistent and predictable
+-- ── Confirm ──
+opt.confirm = true
+
+-- ── File Handling ──
+opt.swapfile = false
+opt.backup = false
+opt.undofile = true
+opt.undodir = vim.fn.stdpath("data") .. "/undodir"
+
+-- ── Splits ──
+opt.splitright = true
+opt.splitbelow = true
+
+-- ── Clipboard ──
+-- CHANGE: removed global unnamedplus clipboard sync.
+-- Previously every yank went to system clipboard automatically, making the
+-- explicit <leader>y mapping redundant and polluting the system clipboard
+-- with every delete/change. Now:
+--   default yank/delete → unnamed register (internal)
+--   <leader>y           → system clipboard (intentional)
+--   <leader>p           → paste without overwriting register
+-- This is the more common "power user" approach.
+
+-- ── Performance ──
+-- CHANGE: updatetime bumped from 250 to 400.
+-- 250ms was aggressive for CursorHold events (LSP doc highlights, etc.)
+-- on Windows where each event can be costly. 400 is still responsive.
+opt.updatetime = 400
+opt.timeoutlen = 300
+
+-- ── Completion ──
+opt.completeopt = { "menuone", "noselect" }
+
+-- ── Encoding ──
+opt.fileencoding = "utf-8"
+
+-- ── Mouse ──
+opt.mouse = "a"
