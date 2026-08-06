@@ -1,127 +1,148 @@
--- ============================================================
---  lua/config/lazy.lua — Plugin manager bootstrap
---
---  We're replacing vim-plug with lazy.nvim.
---  lazy.nvim is the modern standard for Neovim plugin management.
---  It supports:
---    - lazy loading (plugins load only when needed → faster startup)
---    - automatic installation on first launch
---    - lockfile for reproducible plugin versions
---    - a nice UI (:Lazy) to update/manage plugins
---
---  HOW THE BOOTSTRAP WORKS:
---  lazy.nvim is itself a plugin, so we need to install it before we
---  can use it to install other plugins. The block below does this:
---    1. Figures out where lazy.nvim should live on disk (lazypath)
---    2. Checks if it's already installed (vim.loop.fs_stat)
---    3. If not, clones it from GitHub with `git clone`
---    4. Adds it to Neovim's runtime path so `require("lazy")` works
--- ============================================================
+local offline = vim.g.neovim_offline == true
+local data_dir = vim.fn.stdpath("data")
+local manual_root = data_dir .. "/site/pack/manual"
+local lazy_path
 
--- vim.fn.stdpath("data") returns Neovim's data directory:
---   Linux/macOS: ~/.local/share/nvim
---   Windows:     ~/AppData/Local/nvim-data
--- We'll store lazy.nvim inside that directory.
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
---   `..` is Lua's string concatenation operator (like + in Python for strings)
---   result: ~/.local/share/nvim/lazy/lazy.nvim
-
--- Check if lazy.nvim is already installed by testing if that path exists.
--- vim.loop is LuaJIT's libuv bindings (async I/O). fs_stat() is like `stat()`
--- in C — it returns file metadata, or nil if the path doesn't exist.
-if not vim.loop.fs_stat(lazypath) then
-  -- Not installed yet — clone it from GitHub.
-  -- vim.fn.system() runs a shell command and returns its output as a string.
-  -- The argument is a Lua table (list) of the command + its arguments.
-  -- This is safer than a raw string because it avoids shell injection.
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",       -- shallow clone: don't download file contents yet
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable",          -- use the stable release branch
-    lazypath,                   -- destination directory
-  })
+if offline then
+  lazy_path = manual_root .. "/start/lazy.nvim"
+else
+  lazy_path = data_dir .. "/lazy/lazy.nvim"
+  if not vim.uv.fs_stat(lazy_path) then
+    local result = vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "--branch=stable",
+      "https://github.com/folke/lazy.nvim.git",
+      lazy_path,
+    })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to install lazy.nvim:\n", "ErrorMsg" },
+        { result, "WarningMsg" },
+      }, true, {})
+      return
+    end
+  end
 end
 
--- Add lazy.nvim to the runtime path so Lua's require() can find it.
--- vim.opt.rtp is the runtimepath option (the list of directories Neovim
--- searches for scripts, plugins, etc.)
--- :prepend() adds lazypath to the FRONT of that list so it's found first.
-vim.opt.rtp:prepend(lazypath)
+if not vim.uv.fs_stat(lazy_path) then
+  vim.schedule(function()
+    vim.notify(
+      "Offline mode: lazy.nvim is missing at " .. lazy_path,
+      vim.log.levels.ERROR
+    )
+  end)
+  return
+end
 
--- ============================================================
---  Plugin specification
---
---  require("lazy").setup({...}) initialises lazy.nvim and passes
---  it the list of plugins to manage. Each plugin entry can be:
---
---    "author/repo"                    → just install, no config
---    { "author/repo", ... }           → install with options
---    { import = "plugins.filename" }  → load from a separate file
---                                       in lua/plugins/filename.lua
---
---  The { import = ... } pattern is the recommended way to keep
---  things organised — each file in lua/plugins/ handles one plugin
---  or a logical group of plugins.
--- ============================================================
+vim.opt.rtp:prepend(lazy_path)
 
-require("lazy").setup({
+local missing = {}
+local treesitter_build = nil
+if not offline then
+  treesitter_build = ":TSUpdate"
+end
 
-  -- ── Tpope essentials ───────────────────────────────────────
-  -- These are simple plugins with no Lua config needed — just install.
+local function manual_dir(name)
+  for _, kind in ipairs({ "opt", "start" }) do
+    local path = string.format("%s/%s/%s", manual_root, kind, name)
+    if vim.uv.fs_stat(path) then
+      return path
+    end
+  end
+end
 
-  { "tpope/vim-surround" },
-  -- Adds motions to add/change/delete surrounding characters.
-  -- cs"'  → change surrounding " to '
-  -- ds(   → delete surrounding ()
-  -- ysiw" → surround current word with "
+local function plugin(repo, opts)
+  opts = opts or {}
+  local name = opts.name or repo:match("/([^/]+)$")
+  local spec = vim.tbl_deep_extend("force", { repo }, opts)
 
-  { "tpope/vim-commentary" },
-  -- gcc  → toggle comment on current line
-  -- gc   → toggle comment on selected lines (visual mode)
+  if offline then
+    local dir = manual_dir(name)
+    if dir then
+      spec.dir = dir
+    else
+      spec.enabled = false
+      missing[#missing + 1] = name
+    end
+  end
 
-  { "tpope/vim-repeat" },
-  -- Makes the . (repeat last action) command work with plugin actions.
-  -- Without this, . can't repeat surround or commentary operations.
+  return spec
+end
 
-  { "wellle/targets.vim" },
-  -- Adds extra text objects. Examples:
-  -- cin(  → change inside next ()  (even if cursor isn't inside it yet)
-  -- da,   → delete an argument in a function call
+local specs = {
+  plugin("catppuccin/nvim", { name = "catppuccin", priority = 1000 }),
+  plugin("nvim-lualine/lualine.nvim"),
+  plugin("nvim-tree/nvim-web-devicons"),
+  plugin("nvim-lua/plenary.nvim"),
+  plugin("nvim-telescope/telescope.nvim"),
+  plugin("nvim-treesitter/nvim-treesitter", {
+    branch = "master",
+    build = treesitter_build,
+  }),
+  plugin("hrsh7th/nvim-cmp"),
+  plugin("hrsh7th/cmp-nvim-lsp"),
+  plugin("hrsh7th/cmp-buffer"),
+  plugin("hrsh7th/cmp-path"),
+  plugin("saadparwaiz1/cmp_luasnip"),
+  plugin("L3MON4D3/LuaSnip"),
+  plugin("lewis6991/gitsigns.nvim"),
+  plugin("numToStr/Comment.nvim"),
+  plugin("windwp/nvim-autopairs"),
+  plugin("folke/which-key.nvim"),
+  plugin("ggandor/leap.nvim"),
+  plugin("akinsho/toggleterm.nvim"),
+  plugin("folke/todo-comments.nvim"),
+  plugin("stevearc/conform.nvim"),
+  plugin("NMAC427/guess-indent.nvim"),
+  plugin("ray-x/lsp_signature.nvim"),
+  plugin("neovim/nvim-lspconfig"),
+  plugin("mfussenegger/nvim-dap"),
+  plugin("mfussenegger/nvim-dap-python"),
+  plugin("rcarriga/nvim-dap-ui"),
+  plugin("nvim-neotest/nvim-nio"),
+  plugin("Vigemus/iron.nvim"),
+  plugin("ThePrimeagen/harpoon", { branch = "master" }),
+  plugin("mbbill/undotree"),
+  plugin("tpope/vim-fugitive"),
+  plugin("kylechui/nvim-surround"),
+}
 
-  { "justinmk/vim-sneak" },
-  -- s{char}{char} → jump to the next occurrence of two characters
-  -- Faster than / search for short jumps. ; and , repeat forward/backward.
+local ok, lazy = pcall(require, "lazy")
+if not ok then
+  vim.schedule(function()
+    vim.notify("Unable to load lazy.nvim", vim.log.levels.ERROR)
+  end)
+  return
+end
 
-  -- ── Plenary (required by Telescope) ────────────────────────
-  { "nvim-lua/plenary.nvim", lazy = true },
-  -- plenary.nvim is a utility library that other plugins depend on.
-  -- It's not a plugin you interact with directly.
-  -- lazy = true means: don't load it at startup; load it when something needs it.
-
-  -- ── LSP, Treesitter, Telescope, CMP, Git ───────────────────
-  -- These plugins need real configuration, so we delegate each one
-  -- to a separate file inside lua/plugins/.
-  -- { import = "plugins.X" } tells lazy.nvim:
-  --   "go read lua/plugins/X.lua and use whatever specs are returned there"
-
-  { import = "plugins.treesitter" },  -- syntax highlighting & code understanding
-  { import = "plugins.lsp" },         -- language server protocol (code intelligence)
-  { import = "plugins.telescope" },   -- fuzzy finder
-  { import = "plugins.cmp" },         -- autocompletion
-  { import = "plugins.lualine" },     -- statusline
-  { import = "plugins.git" },         -- git signs + fugitive
-  { import = "plugins.dap" },         -- debugger
-
-}, {
-  -- ── lazy.nvim UI options ────────────────────────────────────
-  -- This second table argument configures lazy.nvim itself (not the plugins).
-  ui = {
-    border = "rounded",  -- rounded borders on the :Lazy popup window
-  },
-  checker = {
-    enabled = true,      -- automatically check for plugin updates in the background
-    notify  = false,     -- but don't show a notification every time (check with :Lazy)
+lazy.setup(specs, {
+  defaults = { lazy = false },
+  install = { missing = not offline, colorscheme = { "catppuccin" } },
+  checker = { enabled = not offline },
+  change_detection = { enabled = not offline, notify = false },
+  performance = {
+    rtp = {
+      disabled_plugins = {
+        "gzip",
+        "matchit",
+        "matchparen",
+        "netrwPlugin",
+        "tarPlugin",
+        "tohtml",
+        "tutor",
+        "zipPlugin",
+      },
+    },
   },
 })
+
+if offline and #missing > 0 then
+  vim.schedule(function()
+    vim.notify(
+      "Offline mode: missing plugin directories:\n- " .. table.concat(missing, "\n- "),
+      vim.log.levels.WARN
+    )
+  end)
+end

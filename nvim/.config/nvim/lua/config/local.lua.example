@@ -1,0 +1,8 @@
+-- Copy this file to local.lua. The copy is ignored by Git.
+
+-- Enable strict offline mode: missing plugins are disabled and lazy.nvim does
+-- not clone, install, update, or run its update checker.
+vim.g.neovim_offline = true
+
+-- Optional Windows-only override for ToggleTerm when bash.exe is not on PATH.
+-- vim.g.toggleterm_shell = "C:/Users/your-name/AppData/Local/Programs/Git/usr/bin/bash.exe"
