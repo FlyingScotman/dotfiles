@@ -128,7 +128,6 @@ lazy.setup(specs, {
         "gzip",
         "matchit",
         "matchparen",
-        "netrwPlugin",
         "tarPlugin",
         "tohtml",
         "tutor",
