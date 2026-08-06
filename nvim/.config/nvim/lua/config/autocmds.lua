@@ -47,10 +47,35 @@ autocmd("FileType", {
       "%-G%.%#",                              -- ignore everything else
     }, ",")
 
-    -- <leader>m: run current file via :make (errors go to quickfix)
-    vim.keymap.set("n", "<leader>m", "<cmd>make<CR>", {
+    -- <leader>m: run the current file and surface parsed errors immediately.
+    -- Telescope provides the richer picker when available; the built-in
+    -- quickfix window keeps this useful in a minimal/offline installation.
+    vim.keymap.set("n", "<leader>m", function()
+      vim.cmd.make()
+
+      local has_errors = false
+      for _, item in ipairs(vim.fn.getqflist()) do
+        if item.valid == 1 then
+          has_errors = true
+          break
+        end
+      end
+
+      if not has_errors then
+        pcall(vim.cmd.cclose)
+        vim.notify("Python file finished without errors", vim.log.levels.INFO)
+        return
+      end
+
+      local ok_telescope, telescope = pcall(require, "telescope.builtin")
+      if ok_telescope then
+        telescope.quickfix({ prompt_title = "Python errors" })
+      else
+        vim.cmd.copen()
+      end
+    end, {
       buffer = true,
-      desc = "Run Python file (:make → quickfix)",
+      desc = "Run Python file and show errors",
     })
   end,
 })
