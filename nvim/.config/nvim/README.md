@@ -4,6 +4,14 @@ Neovim 0.11+ configuration for Python, Rust, and Lua development. It supports
 normal online installation through `lazy.nvim` and a strict offline mode for
 machines that cannot access GitHub.
 
+## Compatibility requirement
+
+This configuration must remain usable on the work Windows machine where GitHub
+repositories can be downloaded through a browser, but automatic GitHub cloning
+and plugin installation do not work. Core editing and the `<leader>e` file
+explorer therefore must not depend on a downloadable explorer plugin;
+`<leader>e` uses Neovim's built-in netrw `:Ex` command.
+
 ## Minimal setup
 
 From the root of the dotfiles repository, link the configuration:

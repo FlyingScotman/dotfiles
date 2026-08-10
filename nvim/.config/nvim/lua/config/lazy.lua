@@ -128,7 +128,8 @@ lazy.setup(specs, {
         "gzip",
         "matchit",
         "matchparen",
-        "netrwPlugin",
+        -- Keep netrwPlugin enabled: <leader>e calls the built-in :Ex command.
+        -- This explorer must also work on offline machines without downloads.
         "tarPlugin",
         "tohtml",
         "tutor",
