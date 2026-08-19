@@ -67,6 +67,25 @@ Ruff LSP and Ruff formatting are automatically disabled for files on `G:\` and
 UNC paths such as `\\server\share\project`. Pyright remains enabled. This avoids
 the path failures seen on the work machine without requiring `:LspStop ruff`.
 
+## Optional LLM support
+
+CodeCompanion is enabled only when the configuration detects a usable provider.
+Without an API key or supported local CLI, the plugin is not installed or
+loaded and the rest of the configuration works unchanged.
+
+Supported API key variables are `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `DEEPSEEK_API_KEY`, and `XAI_API_KEY`.
+The configuration also detects Codex ACP, Claude Code ACP, Gemini CLI, Copilot
+CLI, OpenCode, and Ollama. Ollama defaults to `qwen2.5-coder:7b`.
+
+Set `NVIM_LLM_ADAPTER` or `NVIM_LLM_MODEL` to override the detected adapter or
+model. Available mappings are:
+
+- `<leader>cc`: toggle LLM chat;
+- `<leader>ca`: open the LLM action palette;
+- `<leader>ci`: use an inline prompt;
+- `ga` in visual mode: add the selection to chat.
+
 ## Useful compatible keybindings
 
 - `gd` / `F12`: definition;
