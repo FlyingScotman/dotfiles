@@ -120,9 +120,9 @@ if llm.available() then
       "CodeCompanionCmd",
     },
     keys = {
-      { "<leader>ca", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "LLM actions" },
-      { "<leader>cc", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "LLM chat" },
-      { "<leader>ci", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "LLM inline prompt" },
+      { "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "LLM actions" },
+      { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "LLM chat" },
+      { "<leader>ai", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "LLM inline prompt" },
       { "ga", "<cmd>CodeCompanionChat Add<cr>", mode = "v", desc = "Add selection to LLM chat" },
     },
     dependencies = {

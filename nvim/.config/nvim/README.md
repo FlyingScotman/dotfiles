@@ -88,9 +88,9 @@ LLM suggestions appear automatically in the completion menu. Press `<A-y>` in
 insert mode to request them manually, or use `:Minuet cmp toggle` to toggle
 automatic LLM completion for the current session. Chat mappings are:
 
-- `<leader>cc`: toggle LLM chat;
-- `<leader>ca`: open the LLM action palette;
-- `<leader>ci`: use an inline prompt;
+- `<leader>ac`: toggle LLM chat;
+- `<leader>aa`: open the LLM action palette;
+- `<leader>ai`: use an inline prompt;
 - `ga` in visual mode: add the selection to chat.
 
 ## Useful compatible keybindings
@@ -103,5 +103,6 @@ automatic LLM completion for the current session. Chat mappings are:
 - `]d` / `[d`: next/previous diagnostic;
 - `]e` / `[e`: next/previous error;
 - `F8` / `Shift-F8`: next/previous problem;
+- `<leader>ha` / `<leader>ho`: add a file to Harpoon / open its menu;
 - `<leader>r]` / `<leader>r[`: next/previous Python cell;
 - `<leader>x`: delete to the black-hole register.

@@ -251,7 +251,8 @@ if ok_wk then
       -- Kickstart groups
       { "<leader>s", group = "[S]earch", mode = { "n", "v" } },
       { "<leader>t", group = "[T]oggle" },
-      { "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
+      { "<leader>a", group = "[A]I", mode = { "n", "v" } },
+      { "<leader>h", group = "Git [H]unk / Harpoon", mode = { "n", "v" } },
       { "gr", group = "[G]oto LSP", mode = { "n" } },
       -- Extra groups
       { "<leader>g", group = "[G]it" },
