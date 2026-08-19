@@ -109,6 +109,37 @@ local specs = {
   plugin("kylechui/nvim-surround"),
 }
 
+local llm = require("config.llm")
+if llm.available() then
+  specs[#specs + 1] = plugin("olimorris/codecompanion.nvim", {
+    version = "^19.0.0",
+    cmd = {
+      "CodeCompanion",
+      "CodeCompanionActions",
+      "CodeCompanionChat",
+      "CodeCompanionCmd",
+    },
+    keys = {
+      { "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "LLM actions" },
+      { "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = { "n", "v" }, desc = "LLM chat" },
+      { "<leader>ai", "<cmd>CodeCompanion<cr>", mode = { "n", "v" }, desc = "LLM inline prompt" },
+      { "ga", "<cmd>CodeCompanionChat Add<cr>", mode = "v", desc = "Add selection to LLM chat" },
+    },
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-treesitter/nvim-treesitter",
+    },
+    opts = llm.opts(),
+  })
+end
+
+local completion_opts = llm.completion_opts()
+if completion_opts then
+  specs[#specs + 1] = plugin("milanglacier/minuet-ai.nvim", {
+    opts = completion_opts,
+  })
+end
+
 local ok, lazy = pcall(require, "lazy")
 if not ok then
   vim.schedule(function()

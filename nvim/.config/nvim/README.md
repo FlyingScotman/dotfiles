@@ -67,6 +67,32 @@ Ruff LSP and Ruff formatting are automatically disabled for files on `G:\` and
 UNC paths such as `\\server\share\project`. Pyright remains enabled. This avoids
 the path failures seen on the work machine without requiring `:LspStop ruff`.
 
+## Optional LLM support
+
+CodeCompanion provides chat and inline actions. Minuet provides automatic LLM
+code completion through the existing `nvim-cmp` menu. Each integration is
+enabled only when the configuration detects a compatible provider. Without an
+API key or supported local CLI, the plugins are not installed or loaded and the
+rest of the configuration works unchanged.
+
+Supported API key variables are `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `DEEPSEEK_API_KEY`, and `XAI_API_KEY`.
+The configuration also detects Codex ACP, Claude Code ACP, Gemini CLI, Copilot
+CLI, OpenCode, and Ollama. Ollama defaults to `qwen2.5-coder:7b`.
+
+Set `NVIM_LLM_ADAPTER` or `NVIM_LLM_MODEL` to override the detected adapter or
+model. Autocomplete can be overridden independently with
+`NVIM_LLM_COMPLETION_PROVIDER` and `NVIM_LLM_COMPLETION_MODEL`.
+
+LLM suggestions appear automatically in the completion menu. Press `<A-y>` in
+insert mode to request them manually, or use `:Minuet cmp toggle` to toggle
+automatic LLM completion for the current session. Chat mappings are:
+
+- `<leader>ac`: toggle LLM chat;
+- `<leader>aa`: open the LLM action palette;
+- `<leader>ai`: use an inline prompt;
+- `ga` in visual mode: add the selection to chat.
+
 ## Useful compatible keybindings
 
 - `gd` / `F12`: definition;
@@ -77,5 +103,6 @@ the path failures seen on the work machine without requiring `:LspStop ruff`.
 - `]d` / `[d`: next/previous diagnostic;
 - `]e` / `[e`: next/previous error;
 - `F8` / `Shift-F8`: next/previous problem;
+- `<leader>ha` / `<leader>ho`: add a file to Harpoon / open its menu;
 - `<leader>r]` / `<leader>r[`: next/previous Python cell;
 - `<leader>x`: delete to the black-hole register.

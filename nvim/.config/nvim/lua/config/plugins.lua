@@ -107,42 +107,58 @@ end
 
 local ok_cmp, cmp = pcall(require, "cmp")
 local ok_snip, luasnip = pcall(require, "luasnip")
+local ok_minuet, minuet = pcall(require, "minuet")
 
 if ok_cmp then
+  local mappings = cmp.mapping.preset.insert({
+    ["<C-k>"] = cmp.mapping.select_prev_item(),
+    ["<C-j>"] = cmp.mapping.select_next_item(),
+    ["<C-b>"] = cmp.mapping.scroll_docs(-4),
+    ["<C-f>"] = cmp.mapping.scroll_docs(4),
+    ["<C-Space>"] = cmp.mapping.complete(),
+    ["<C-e>"] = cmp.mapping.abort(),
+    ["<CR>"] = cmp.mapping.confirm({ select = false }),
+    ["<Tab>"] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif ok_snip and luasnip.expand_or_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
+  })
+  local primary_sources = {
+    { name = "nvim_lsp" },
+    { name = "luasnip" },
+  }
+
+  if ok_minuet then
+    mappings["<A-y>"] = minuet.make_cmp_map()
+    table.insert(primary_sources, 1, { name = "minuet", group_index = 1, priority = 100 })
+  end
+
   cmp.setup({
     snippet = {
       expand = function(args)
         if ok_snip then luasnip.lsp_expand(args.body) end
       end,
     },
-    mapping = cmp.mapping.preset.insert({
-      ["<C-k>"] = cmp.mapping.select_prev_item(),
-      ["<C-j>"] = cmp.mapping.select_next_item(),
-      ["<C-b>"] = cmp.mapping.scroll_docs(-4),
-      ["<C-f>"] = cmp.mapping.scroll_docs(4),
-      ["<C-Space>"] = cmp.mapping.complete(),
-      ["<C-e>"] = cmp.mapping.abort(),
-      ["<CR>"] = cmp.mapping.confirm({ select = false }),
-      ["<Tab>"] = cmp.mapping(function(fallback)
-        if cmp.visible() then
-          cmp.select_next_item()
-        elseif ok_snip and luasnip.expand_or_jumpable() then
-          luasnip.expand_or_jump()
-        else
-          fallback()
-        end
-      end, { "i", "s" }),
-    }),
-    sources = cmp.config.sources({
-      { name = "nvim_lsp" },
-      { name = "luasnip" },
-    }, {
+    mapping = mappings,
+    sources = cmp.config.sources(primary_sources, {
       { name = "buffer" },
       { name = "path" },
     }),
+    performance = { fetching_timeout = 5000 },
     formatting = {
       format = function(entry, item)
-        local source_names = { nvim_lsp = "[LSP]", luasnip = "[Snip]", buffer = "[Buf]", path = "[Path]" }
+        local source_names = {
+          minuet = "[AI]",
+          nvim_lsp = "[LSP]",
+          luasnip = "[Snip]",
+          buffer = "[Buf]",
+          path = "[Path]",
+        }
         item.menu = source_names[entry.source.name] or ""
         return item
       end,
@@ -235,7 +251,8 @@ if ok_wk then
       -- Kickstart groups
       { "<leader>s", group = "[S]earch", mode = { "n", "v" } },
       { "<leader>t", group = "[T]oggle" },
-      { "<leader>h", group = "Git [H]unk", mode = { "n", "v" } },
+      { "<leader>a", group = "[A]I", mode = { "n", "v" } },
+      { "<leader>h", group = "Git [H]unk / Harpoon", mode = { "n", "v" } },
       { "gr", group = "[G]oto LSP", mode = { "n" } },
       -- Extra groups
       { "<leader>g", group = "[G]it" },
