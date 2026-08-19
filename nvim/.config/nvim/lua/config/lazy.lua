@@ -133,6 +133,13 @@ if llm.available() then
   })
 end
 
+local completion_opts = llm.completion_opts()
+if completion_opts then
+  specs[#specs + 1] = plugin("milanglacier/minuet-ai.nvim", {
+    opts = completion_opts,
+  })
+end
+
 local ok, lazy = pcall(require, "lazy")
 if not ok then
   vim.schedule(function()

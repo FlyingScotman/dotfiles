@@ -69,9 +69,11 @@ the path failures seen on the work machine without requiring `:LspStop ruff`.
 
 ## Optional LLM support
 
-CodeCompanion is enabled only when the configuration detects a usable provider.
-Without an API key or supported local CLI, the plugin is not installed or
-loaded and the rest of the configuration works unchanged.
+CodeCompanion provides chat and inline actions. Minuet provides automatic LLM
+code completion through the existing `nvim-cmp` menu. Each integration is
+enabled only when the configuration detects a compatible provider. Without an
+API key or supported local CLI, the plugins are not installed or loaded and the
+rest of the configuration works unchanged.
 
 Supported API key variables are `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `DEEPSEEK_API_KEY`, and `XAI_API_KEY`.
@@ -79,7 +81,12 @@ The configuration also detects Codex ACP, Claude Code ACP, Gemini CLI, Copilot
 CLI, OpenCode, and Ollama. Ollama defaults to `qwen2.5-coder:7b`.
 
 Set `NVIM_LLM_ADAPTER` or `NVIM_LLM_MODEL` to override the detected adapter or
-model. Available mappings are:
+model. Autocomplete can be overridden independently with
+`NVIM_LLM_COMPLETION_PROVIDER` and `NVIM_LLM_COMPLETION_MODEL`.
+
+LLM suggestions appear automatically in the completion menu. Press `<A-y>` in
+insert mode to request them manually, or use `:Minuet cmp toggle` to toggle
+automatic LLM completion for the current session. Chat mappings are:
 
 - `<leader>cc`: toggle LLM chat;
 - `<leader>ca`: open the LLM action palette;

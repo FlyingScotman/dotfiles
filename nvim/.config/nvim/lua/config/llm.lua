@@ -40,6 +40,58 @@ function M.available()
   return M.detect_adapter() ~= nil
 end
 
+function M.completion_opts()
+  local adapter = M.detect_adapter()
+  local providers = {
+    openai_responses = "openai",
+    anthropic = "claude",
+    gemini = "gemini",
+    openrouter = "openai_compatible",
+    deepseek = "openai_fim_compatible",
+    ollama = "openai_fim_compatible",
+  }
+  local provider = has_env("NVIM_LLM_COMPLETION_PROVIDER") and vim.env.NVIM_LLM_COMPLETION_PROVIDER
+    or providers[adapter]
+
+  if provider == nil then
+    return nil
+  end
+
+  local model = has_env("NVIM_LLM_COMPLETION_MODEL") and vim.env.NVIM_LLM_COMPLETION_MODEL
+    or (has_env("NVIM_LLM_MODEL") and vim.env.NVIM_LLM_MODEL or nil)
+  local opts = {
+    provider = provider,
+    request_timeout = 5,
+    throttle = 1500,
+    debounce = 600,
+    n_completions = 1,
+  }
+
+  if adapter == "ollama" then
+    opts.context_window = 512
+    opts.provider_options = {
+      openai_fim_compatible = {
+        api_key = function()
+          return "ollama"
+        end,
+        name = "Ollama",
+        end_point = "http://localhost:11434/v1/completions",
+        model = model or "qwen2.5-coder:7b",
+        optional = {
+          max_tokens = 56,
+          top_p = 0.9,
+        },
+      },
+    }
+  elseif model ~= nil then
+    opts.provider_options = {
+      [provider] = { model = model },
+    }
+  end
+
+  return opts
+end
+
 function M.opts()
   local adapter = M.detect_adapter()
   local model = has_env("NVIM_LLM_MODEL") and vim.env.NVIM_LLM_MODEL or nil
